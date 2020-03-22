@@ -1,0 +1,7 @@
+aws-cdk.aws-apigateway
+aws-cdk.aws-dynamodb
+aws-cdk.aws-events
+aws-cdk.aws-iam
+aws-cdk.aws-lambda
+aws-cdk.aws-s3-assets
+aws-cdk.core
