@@ -1,9 +1,13 @@
 #!/user/bin/env python3
 from aws_cdk import (core,
     aws_dynamodb as dynamodb,
+    aws_events as events,
+    aws_events_targets as events_targets,
     aws_iam as iam,
     aws_lambda as lambda_,
 )
+
+tickers = ['AMZN', 'MSFT', 'GOOGL', 'ORCL', 'BABA'] # Maximum of 5 targets per CloudWatch Event Rule
 
 
 class FinanceStack(core.Stack):
@@ -40,6 +44,28 @@ class FinanceStack(core.Stack):
             environment={
                 'TABLE_NAME': table.table_name
             }
+        )
+
+        targets = [
+            events_targets.LambdaFunction(
+                handler=function,
+                event=events.RuleTargetInput.from_object({
+                    'ticker': ticker,
+                    'period': '3d',
+                })
+            )
+            for ticker in tickers
+        ]
+
+        events.Rule(self, 'DailyUpdate',
+            targets=targets,
+            schedule=events.Schedule.cron(
+                year='*',
+                month='*',
+                week_day='MON-FRI', # Only on days which markets are open
+                hour='21', # Closing at NYSE converted from EST to UTC
+                minute='5', # 5 minutes after closing
+            ),
         )
 
 
