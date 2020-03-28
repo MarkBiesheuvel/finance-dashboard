@@ -14,27 +14,23 @@
     console.error(error)
   }).then(data => {
 
-    data.forEach(row => {
-      row.Date = Date.parse(row.Date)
-    })
-
     const main = d3.select("#main")
 
     const svg = main.append("svg")
       .attr("width", width)
       .attr("height", height)
 
-    const xScale = d3.scaleUtc()
-      .domain(d3.extent(data, d => d.Date))
+    const xScale = d3.scalePoint()
+      .domain(data.map(row => row.Date))
       .range([margin.left, width - margin.right])
 
     const yScale = d3.scaleLinear()
-      .domain(d3.extent(data, d => d.Close))
+      .domain(d3.extent(data, row => row.Close))
       .rangeRound([height - margin.bottom, margin.top])
 
     const xAxis = d3.axisBottom()
       .scale(xScale)
-      .ticks(10)
+      .tickValues(xScale.domain().filter((row, i) => !(i%7)))
       .tickSizeOuter(0)
 
     const yAxis = d3.axisLeft()
