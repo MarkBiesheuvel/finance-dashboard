@@ -1,5 +1,6 @@
 #!/user/bin/env python3
 from importer import Importer
+from restapi import RestApi
 from aws_cdk import (core,
     aws_dynamodb as dynamodb,
 )
@@ -26,6 +27,7 @@ class FinanceStack(core.Stack):
         )
 
         Importer(self, 'Importer', tickers=TICKERS, table=table)
+        RestApi(self, 'Api', table=table)
 
 
 app = core.App()
