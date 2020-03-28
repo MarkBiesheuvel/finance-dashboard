@@ -34,10 +34,17 @@ class RestApi(core.Construct):
         api = apigateway.RestApi(self, 'StockHistory',
             endpoint_types=[
                 apigateway.EndpointType.REGIONAL
-            ]
+            ],
         )
 
         resource = api.root.add_resource('{ticker}')
+
+        resource.add_cors_preflight(
+            allow_origins=apigateway.Cors.ALL_ORIGINS,
+            allow_credentials=True,
+            allow_headers=apigateway.Cors.DEFAULT_HEADERS,
+            allow_methods=apigateway.Cors.ALL_METHODS,
+        )
 
         integration = apigateway.LambdaIntegration(
             function,
