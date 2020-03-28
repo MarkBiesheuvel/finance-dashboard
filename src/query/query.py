@@ -17,11 +17,6 @@ def handler(event, context):
     response = table.query(
         KeyConditionExpression=Key('Ticker').eq(ticker)
             & Key('Date').between('2020-01-01', '2020-03-31'),
-        ProjectionExpression="#D, #C",
-        ExpressionAttributeNames={
-            '#D': 'Date',
-            '#C': 'Close',
-        },
     )
     items = response['Items']
 
