@@ -1,4 +1,5 @@
 #!/user/bin/env python3
+from os import environ
 from importer import Importer
 from restapi import RestApi
 from website import Website
@@ -33,5 +34,10 @@ class FinanceStack(core.Stack):
 
 
 app = core.App()
-stack = FinanceStack(app, 'FinanceDashboard')
+stack = FinanceStack(app, 'FinanceDashboard',
+    env=core.Environment(
+        account=environ['CDK_DEFAULT_ACCOUNT'],
+        region=environ['CDK_DEFAULT_REGION'],
+    )
+)
 app.synth()
