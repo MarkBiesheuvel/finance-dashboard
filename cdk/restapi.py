@@ -35,9 +35,14 @@ class RestApi(core.Construct):
             endpoint_types=[
                 apigateway.EndpointType.REGIONAL
             ],
+            cloud_watch_role=True,
+            deploy_options=apigateway.StageOptions(
+                logging_level=apigateway.MethodLoggingLevel.ERROR,
+                metrics_enabled=True,
+            ),
         )
 
-        resource = api.root.add_resource('{ticker}')
+        resource = api.root.add_resource('stock').add_resource('{ticker}')
 
         resource.add_cors_preflight(
             allow_origins=apigateway.Cors.ALL_ORIGINS,
@@ -52,3 +57,5 @@ class RestApi(core.Construct):
         )
 
         resource.add_method('GET', integration)
+
+        self.api = api

@@ -1,6 +1,7 @@
 #!/user/bin/env python3
 from importer import Importer
 from restapi import RestApi
+from website import Website
 from aws_cdk import (core,
     aws_dynamodb as dynamodb,
 )
@@ -26,8 +27,9 @@ class FinanceStack(core.Stack):
             removal_policy=core.RemovalPolicy.DESTROY,
         )
 
-        Importer(self, 'Importer', tickers=TICKERS, table=table)
-        RestApi(self, 'Api', table=table)
+        importer = Importer(self, 'Importer', tickers=TICKERS, table=table)
+        restapi = RestApi(self, 'Api', table=table)
+        website = Website(self, 'Website', api=restapi.api)
 
 
 app = core.App()

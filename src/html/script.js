@@ -3,14 +3,14 @@
   class Chart {
     duration = 600
 
-    width = 1110
+    width = 1140
 
     height = 500
 
     margin = {
-        top: 20,
+        top: 5,
         right: 50,
-        bottom: 80,
+        bottom: 30,
         left: 50
     }
 
@@ -18,6 +18,7 @@
 
     constructor (main) {
       this.svg = main.append('svg')
+        .attr('class', 'mx-n3 my-5')
         .attr('width', this.width)
         .attr('height', this.height)
 
@@ -92,7 +93,6 @@
         .attr('class', 'candle')
         .attr('transform', row => `translate(${this.xScale(row.Date)},0)`)
         .attr('stroke-width', this.xScale.bandwidth())
-        .attr('stroke', row => row.Open > row.Close ? d3.schemeSet1[0] : d3.schemeSet1[2])
         .call(this.updateCandle)
     }
 
@@ -124,6 +124,7 @@
 
     updateCandle (selection) {
       selection
+        .attr('stroke', row => row.Open > row.Close ? d3.schemeSet1[0] : d3.schemeSet1[2])
         .attr('y1', row => this.yScale(row.Open))
         .attr('y2', row => this.yScale(row.Close))
     }
