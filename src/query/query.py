@@ -15,10 +15,12 @@ def handler(event, context):
     ticker = event['pathParameters']['ticker']
 
     response = table.query(
-        KeyConditionExpression=Key('Ticker').eq(ticker)
-            & Key('Date').between('2020-01-01', '2020-03-31'),
+        Limit=60,
+        ScanIndexForward=False,
+        KeyConditionExpression=Key('Ticker').eq(ticker),
     )
     items = response['Items']
+    items.reverse()
 
     return {
         'statusCode': 200,
