@@ -24,5 +24,8 @@ def handler(event, context):
 
     return {
         'statusCode': 200,
+        'headers': {
+            'Access-Control-Allow-Origin': 'http://[::1]',
+        },
         'body': json.dumps(items, default=str)
     }

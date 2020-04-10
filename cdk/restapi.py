@@ -44,13 +44,6 @@ class RestApi(core.Construct):
 
         resource = api.root.add_resource('stock').add_resource('{ticker}')
 
-        resource.add_cors_preflight(
-            allow_origins=apigateway.Cors.ALL_ORIGINS,
-            allow_credentials=True,
-            allow_headers=apigateway.Cors.DEFAULT_HEADERS,
-            allow_methods=apigateway.Cors.ALL_METHODS,
-        )
-
         integration = apigateway.LambdaIntegration(
             function,
             proxy=True,

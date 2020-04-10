@@ -14,6 +14,10 @@
         left: 50
     }
 
+    protocol = 'https'
+
+    domain = 'finance.demo.training'
+
     first = true
 
     constructor (main) {
@@ -37,7 +41,7 @@
       } else {
         this.ticker = ticker
       }
-      d3.json(`stock/${ticker}`)
+      d3.json(`${this.protocol}://${this.domain}/stock/${ticker}`)
         .then(data => {
           this.update(data)
           if (this.first) {
