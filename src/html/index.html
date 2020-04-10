@@ -11,16 +11,25 @@
     <div class="container-sm bg-light" id="main">
 
       <h1 class="h1">Dashboard</h1>
-      <div class="btn-toolbar">
-        <div class="btn-group btn-group-sm" role="group" aria-label="First group">
-          <button type="button" class="btn btn-dark active" value="AMZN">Amazon</button>
-          <button type="button" class="btn btn-dark" value="MSFT">Microsoft</button>
-          <button type="button" class="btn btn-dark" value="GOOGL">Google</button>
-          <button type="button" class="btn btn-dark" value="ORCL">Oracle</button>
-          <button type="button" class="btn btn-dark" value="BABA">Alibaba</button>
+      <div class="btn-toolbar mb-3">
+        <div class="btn-group btn-group-sm">
+          <button type="button" class="btn btn-lg btn-dark active" value="AMZN">Amazon</button>
+          <button type="button" class="btn btn-lg btn-dark" value="MSFT">Microsoft</button>
+          <button type="button" class="btn btn-lg btn-dark" value="GOOGL">Google</button>
+          <button type="button" class="btn btn-lg btn-dark" value="ORCL">Oracle</button>
+          <button type="button" class="btn btn-lg btn-dark" value="BABA">Alibaba</button>
         </div>
       </div>
-
+      <div class="form-row mb-3">
+        <div class="col-sm-3 col-md-2">
+          <label for="start-date">Start date</label>
+          <input type="date" class="form-control" id="start-date">
+        </div>
+        <div class="col-sm-3 col-md-2">
+          <label for="start-date">End date</label>
+          <input type="date" class="form-control" id="end-date">
+        </div>
+      </div>
     </div>
     <script src="https://d3js.org/d3.v5.min.js"></script>
     <script src="script.js"></script>

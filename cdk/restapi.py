@@ -49,6 +49,12 @@ class RestApi(core.Construct):
             proxy=True,
         )
 
-        resource.add_method('GET', integration)
+        resource.add_method('GET',
+            integration=integration,
+            request_parameters={
+                'method.request.querystring.start': False,
+                'method.request.querystring.end': False,
+            },
+        )
 
         self.api = api

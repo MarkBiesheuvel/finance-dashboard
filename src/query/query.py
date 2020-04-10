@@ -11,16 +11,24 @@ else:
 
 
 def handler(event, context):
+    ticker = event.get('pathParameters', {}).get('ticker', '')
+    start = event.get('queryStringParameters', {}).get('start', '')
+    end = event.get('queryStringParameters', {}).get('end', '')
 
-    ticker = event['pathParameters']['ticker']
-
-    response = table.query(
-        Limit=60,
-        ScanIndexForward=False,
-        KeyConditionExpression=Key('Ticker').eq(ticker),
-    )
-    items = response['Items']
-    items.reverse()
+    if start and end:
+        response = table.query(
+            KeyConditionExpression=Key('Ticker').eq(ticker)
+                & Key('Date').between(start, end),
+        )
+        items = response['Items']
+    else:
+        response = table.query(
+            Limit=60,
+            ScanIndexForward=False,
+            KeyConditionExpression=Key('Ticker').eq(ticker),
+        )
+        items = response['Items']
+        items.reverse()
 
     return {
         'statusCode': 200,

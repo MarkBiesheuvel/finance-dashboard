@@ -35,14 +35,12 @@
       this.updateCandle = this.updateCandle.bind(this)
     }
 
-    load (ticker) {
-      if (ticker === this.ticker) {
-        return
-      } else {
-        this.ticker = ticker
-      }
-      d3.json(`${this.protocol}://${this.domain}/stock/${ticker}`)
+    load (ticker, start, end, callback) {
+      d3.json(`${this.protocol}://${this.domain}/stock/${ticker}?start=${start}&end=${end}`)
         .then(data => {
+          if (callback) {
+            callback(data)
+          }
           this.update(data)
           if (this.first) {
             this.first = false
@@ -135,15 +133,39 @@
   }
 
   const main = d3.select('#main')
+  const start = main.select('#start-date')
+  const end = main.select('#end-date')
   const buttons = main.selectAll('button')
   const chart = new Chart(main)
 
-  chart.load('AMZN')
+  const load = (callback) => {
+    const activeTicker = buttons.filter('.active').property('value')
+    const selectedStartDate = start.property('value')
+    const selectedEndDate = end.property('value')
+    chart.load(
+      activeTicker,
+      selectedStartDate,
+      selectedEndDate,
+      callback
+    )
+  }
 
   buttons.on('click', () => {
-    const button = d3.event.toElement
-    chart.load(button.value)
     buttons.classed('active', false)
-    d3.select(button).classed('active', true)
+    d3.select(d3.event.toElement).classed('active', true)
+    load()
+  })
+
+  start.on('change', () => {
+    load()
+  })
+
+  end.on('change', () => {
+    load()
+  })
+
+  load(data => {
+    start.property('value', data[0]['Date'])
+    end.property('value', data[data.length - 1]['Date'])
   })
 }())

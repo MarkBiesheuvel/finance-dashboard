@@ -59,7 +59,10 @@ class Website(core.Construct):
                     min_ttl=core.Duration.seconds(0),
                     max_ttl=core.Duration.seconds(0),
                     path_pattern='/stock/*',
-                    allowed_methods=cloudfront.CloudFrontAllowedMethods.GET_HEAD_OPTIONS,
+                    forwarded_values={
+                        'query_string': True,
+                        'query_string_cache_keys': ['start', 'end']
+                    }
                 )
             ]
         )
