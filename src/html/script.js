@@ -31,8 +31,8 @@
         .attr('stroke', 'black')
 
       // Avoid binding issues
-      this.updateStick = this.updateStick.bind(this)
-      this.updateCandle = this.updateCandle.bind(this)
+      this.setAttrStick = this.setAttrStick.bind(this)
+      this.setAttrCandle = this.setAttrCandle.bind(this)
     }
 
     load (ticker, start, end, callback) {
@@ -42,12 +42,7 @@
             callback(data)
           }
           this.update(data)
-          if (this.first) {
-            this.first = false
-            this.draw(data)
-          } else {
-            this.redraw(data)
-          }
+          this.draw(data)
         })
         .catch(console.error)
     }
@@ -74,58 +69,70 @@
     }
 
     draw (data) {
-      this.domXAxis = this.svg.append('g')
-        .attr('transform', `translate(0,${this.height - this.margin.bottom})`)
-        .call(this.xAxis)
-
-      this.domYAxis = this.svg.append('g')
-        .attr('transform', `translate(${this.margin.left},0)`)
-        .call(this.yAxis)
-
-      this.domSticks = this.area.selectAll('line.stick')
-        .data(data)
-        .join('line')
-        .attr('class', 'stick')
-        .attr('transform', row => `translate(${this.xScale(row.Date)},0)`)
-        .call(this.updateStick)
-
-      this.domCandles = this.area.selectAll('line.candle')
-        .data(data)
-        .join('line')
-        .attr('class', 'candle')
-        .attr('transform', row => `translate(${this.xScale(row.Date)},0)`)
-        .attr('stroke-width', this.xScale.bandwidth())
-        .call(this.updateCandle)
-    }
-
-    redraw (data) {
-      this.domXAxis.transition()
-        .duration(this.duration)
-        .call(this.xAxis)
-
-      this.domYAxis.transition()
-        .duration(this.duration)
-        .call(this.yAxis)
-
-      this.domSticks.data(data)
+      const t = this.svg
         .transition()
         .duration(this.duration)
-        .call(this.updateStick)
 
-      this.domCandles.data(data)
-        .transition()
-        .duration(this.duration)
-        .call(this.updateCandle)
+      if (this.first) {
+        this.first = false
+
+        this.domXAxis = this.svg.append('g')
+          .attr('transform', `translate(0,${this.height - this.margin.bottom})`)
+          .call(this.xAxis)
+
+        this.domYAxis = this.svg.append('g')
+          .attr('transform', `translate(${this.margin.left},0)`)
+          .call(this.yAxis)
+      } else {
+        this.domXAxis
+          .transition(t)
+          .call(this.xAxis)
+
+        this.domYAxis
+          .transition(t)
+          .call(this.yAxis)
+      }
+
+      this.area.selectAll('line.stick')
+        .data(data, row => row.Date)
+        .join(
+          enter => enter
+            .append('line')
+            .attr('class', 'stick')
+            .call(this.setAttrStick),
+          update => update
+            .transition(t)
+            .call(this.setAttrStick),
+          exit => exit
+            .remove()
+        )
+
+      this.area.selectAll('line.candle')
+        .data(data, row => row.Date)
+        .join(
+          enter => enter
+            .append('line')
+            .attr('class', 'candle')
+            .call(this.setAttrCandle),
+          update => update
+            .transition(t)
+            .call(this.setAttrCandle),
+          exit => exit
+            .remove()
+        )
     }
 
-    updateStick (selection) {
+    setAttrStick (selection) {
       selection
+        .attr('transform', row => `translate(${this.xScale(row.Date)},0)`)
         .attr('y1', row => this.yScale(row.Low))
         .attr('y2', row => this.yScale(row.High))
     }
 
-    updateCandle (selection) {
+    setAttrCandle (selection) {
       selection
+        .attr('transform', row => `translate(${this.xScale(row.Date)},0)`)
+        .attr('stroke-width', this.xScale.bandwidth())
         .attr('stroke', row => row.Open > row.Close ? d3.schemeSet1[0] : d3.schemeSet1[2])
         .attr('y1', row => this.yScale(row.Open))
         .attr('y2', row => this.yScale(row.Close))
