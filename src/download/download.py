@@ -33,7 +33,3 @@ def handler(event, context):
             })
 
     print('Done {}'.format(ticker))
-
-# Direct invocation
-if __name__ == '__main__':
-    handler({'ticker': 'AMZN', 'period': '1m'}, None)

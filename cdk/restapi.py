@@ -1,5 +1,6 @@
 #!/user/bin/env python3
-from aws_cdk import (core,
+from aws_cdk import (
+    core,
     aws_apigateway as apigateway,
     aws_dynamodb as dynamodb,
     aws_iam as iam,
@@ -12,7 +13,8 @@ class RestApi(core.Construct):
     def __init__(self, scope: core.Construct, id: str, table: dynamodb.Table, **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
 
-        role = iam.Role(self, 'LambdaRole',
+        role = iam.Role(
+            self, 'LambdaRole',
             assumed_by=iam.ServicePrincipal('lambda.amazonaws.com'),
             managed_policies=[
                 iam.ManagedPolicy.from_aws_managed_policy_name('service-role/AWSLambdaBasicExecutionRole'),
@@ -21,8 +23,9 @@ class RestApi(core.Construct):
 
         table.grant_read_data(role)
 
-        function = lambda_.Function(self, 'Query',
-            runtime=lambda_.Runtime.PYTHON_3_6, # Current version on my machines
+        function = lambda_.Function(
+            self, 'Query',
+            runtime=lambda_.Runtime.PYTHON_3_7,  # Current version on my machines
             code=lambda_.Code.from_asset('src/query'),
             handler='query.handler',
             role=role,
@@ -31,7 +34,8 @@ class RestApi(core.Construct):
             }
         )
 
-        api = apigateway.RestApi(self, 'StockHistory',
+        api = apigateway.RestApi(
+            self, 'StockHistory',
             endpoint_types=[
                 apigateway.EndpointType.REGIONAL
             ],
@@ -49,7 +53,8 @@ class RestApi(core.Construct):
             proxy=True,
         )
 
-        resource.add_method('GET',
+        resource.add_method(
+            'GET',
             integration=integration,
             request_parameters={
                 'method.request.querystring.start': False,

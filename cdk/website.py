@@ -1,5 +1,6 @@
 #!/user/bin/env python3
-from aws_cdk import (core,
+from aws_cdk import (
+    core,
     aws_certificatemanager as acm,
     aws_apigateway as apigateway,
     aws_cloudfront as cloudfront,
@@ -18,7 +19,8 @@ class Website(core.Construct):
 
         bucket = s3.Bucket(self, 'Storage')
 
-        s3_deployment.BucketDeployment(self, 'Deployment',
+        s3_deployment.BucketDeployment(
+            self, 'Deployment',
             sources=[
                 s3_deployment.Source.asset('./src/html'),
             ],
@@ -70,17 +72,20 @@ class Website(core.Construct):
         domain_name = 'demo.training'
         subdomain = 'finance.{}'.format(domain_name)
 
-        zone = route53.HostedZone.from_lookup(self, 'Zone',
+        zone = route53.HostedZone.from_lookup(
+            self, 'Zone',
             domain_name=domain_name,
         )
 
-        certificate = acm.DnsValidatedCertificate(self, 'Certificate',
+        certificate = acm.DnsValidatedCertificate(
+            self, 'Certificate',
             domain_name=subdomain,
             hosted_zone=zone,
             region='us-east-1',
         )
 
-        distribution = cloudfront.CloudFrontWebDistribution(self, 'CDN',
+        distribution = cloudfront.CloudFrontWebDistribution(
+            self, 'CDN',
             price_class=cloudfront.PriceClass.PRICE_CLASS_ALL,
             origin_configs=[
                 s3_origin,
@@ -92,7 +97,8 @@ class Website(core.Construct):
             )
         )
 
-        route53.ARecord(self, 'DnsRecord',
+        route53.ARecord(
+            self, 'DnsRecord',
             record_name=subdomain,
             target=route53.AddressRecordTarget.from_alias(
                 alias_target=route53_targets.CloudFrontTarget(distribution)

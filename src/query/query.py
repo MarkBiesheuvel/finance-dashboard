@@ -1,6 +1,6 @@
 from os import environ
 import boto3
-from boto3.dynamodb.conditions import Key, Attr
+from boto3.dynamodb.conditions import Key
 import json
 
 if 'TABLE_NAME' in environ:
@@ -17,8 +17,7 @@ def handler(event, context):
 
     if start and end:
         response = table.query(
-            KeyConditionExpression=Key('Ticker').eq(ticker)
-                & Key('Date').between(start, end),
+            KeyConditionExpression=Key('Ticker').eq(ticker) & Key('Date').between(start, end),
         )
         items = response['Items']
     else:
