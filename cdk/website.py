@@ -38,9 +38,9 @@ class Website(core.Construct):
             ),
             behaviors=[
                 cloudfront.Behavior(
-                    default_ttl=core.Duration.seconds(0),
-                    min_ttl=core.Duration.seconds(0),
-                    max_ttl=core.Duration.seconds(0),
+                    default_ttl=core.Duration.days(1),
+                    min_ttl=core.Duration.days(1),
+                    max_ttl=core.Duration.days(31),
                     is_default_behavior=True,
                 )
             ]
