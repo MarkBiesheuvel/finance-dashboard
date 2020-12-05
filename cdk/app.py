@@ -16,18 +16,30 @@ class FinanceStack(core.Stack):
     def __init__(self, scope: core.Construct, id: str, **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
 
+        ticker = dynamodb.Attribute(
+            name='Ticker',
+            type=dynamodb.AttributeType.STRING,
+        )
+
+        date = dynamodb.Attribute(
+            name='Date',
+            type=dynamodb.AttributeType.STRING,
+        )
+
         table = dynamodb.Table(
             self, 'StockHistory',
-            partition_key=dynamodb.Attribute(
-                name='Ticker',
-                type=dynamodb.AttributeType.STRING,
-            ),
-            sort_key=dynamodb.Attribute(
-                name='Date',
-                type=dynamodb.AttributeType.STRING,
-            ),
+            partition_key=ticker,
+            sort_key=date,
             billing_mode=dynamodb.BillingMode.PAY_PER_REQUEST,
             removal_policy=core.RemovalPolicy.DESTROY,
+            point_in_time_recovery=True,
+        )
+
+        table.add_global_secondary_index(
+            index_name='DateTicker-index',
+            partition_key=date,
+            sort_key=ticker,
+            projection_type=dynamodb.ProjectionType.KEYS_ONLY,
         )
 
         Importer(self, 'Importer', tickers=TICKERS, table=table)
