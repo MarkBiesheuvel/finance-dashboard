@@ -8,8 +8,6 @@ from aws_cdk import (
     aws_dynamodb as dynamodb,
 )
 
-TICKERS = ['AMZN', 'MSFT', 'GOOGL', 'ORCL', 'BABA']  # Maximum of 5 targets per CloudWatch Event Rule
-
 
 class FinanceStack(core.Stack):
 
@@ -42,7 +40,7 @@ class FinanceStack(core.Stack):
             projection_type=dynamodb.ProjectionType.KEYS_ONLY,
         )
 
-        Importer(self, 'Importer', tickers=TICKERS, table=table)
+        Importer(self, 'Importer', table=table)
         restapi = RestApi(self, 'Api', table=table)
         Website(self, 'Website', api=restapi.api)
 
