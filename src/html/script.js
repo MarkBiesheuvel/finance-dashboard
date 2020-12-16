@@ -1,5 +1,8 @@
 /* global d3 */
 (function () {
+  const protocol = 'https'
+  const domain = 'finance.demo.training'
+
   class Chart {
     duration = 600
 
@@ -13,10 +16,6 @@
         bottom: 30,
         left: 50
     }
-
-    protocol = 'https'
-
-    domain = 'finance.demo.training'
 
     first = true
 
@@ -36,7 +35,7 @@
     }
 
     load (ticker, start, end, callback) {
-      d3.json(`${this.protocol}://${this.domain}/stock/${ticker}?start=${start}&end=${end}`)
+      d3.json(`${protocol}://${domain}/stock/${ticker}?start=${start}&end=${end}`)
         .then(data => {
           if (callback) {
             callback(data)
@@ -139,40 +138,87 @@
     }
   }
 
-  const main = d3.select('#main')
-  const start = main.select('#start-date')
-  const end = main.select('#end-date')
-  const buttons = main.selectAll('button')
-  const chart = new Chart(main)
+  class Form {
 
-  const load = (callback) => {
-    const activeTicker = buttons.filter('.active').property('value')
-    const selectedStartDate = start.property('value')
-    const selectedEndDate = end.property('value')
-    chart.load(
-      activeTicker,
-      selectedStartDate,
-      selectedEndDate,
-      callback
-    )
+    constructor (main) {
+      this.start = main.select('#start-date')
+      this.end =  main.select('#end-date')
+      this.buttonGroup = main.select('#button-group')
+    }
+
+    init ()  {
+      d3.json(`${protocol}://${domain}/stock/`)
+        .then(stocks => {
+          this.createButtons(stocks)
+          this.firstLoad()
+          this.bindEvents()
+        })
+        .catch(console.error)
+    }
+
+    createButtons(stocks) {
+      this.buttons = this.buttonGroup.selectAll('button')
+        .data(stocks, stock => stock.Ticker)
+        .join(
+          enter => enter
+            .append('button')
+            .attr('class', 'btn btn-default btn-dark')
+            .attr('title', stock => stock.Name)
+            .text(stock => stock.Ticker)
+        )
+    }
+
+    firstLoad() {
+      const activeButton = this.buttons.filter(":first-child")
+      activeButton.classed('active', true)
+
+      this.activeTicker = activeButton.text()
+      this.selectedStartDate = this.start.property('value')
+      this.selectedEndDate = this.end.property('value')
+
+      this.reload(data => {
+        // Set the date fields after fetching the initial series
+        this.start.property('value', data[0]['Date'])
+        this.end.property('value', data[data.length - 1]['Date'])
+      })
+    }
+
+    bindEvents() {
+      this.start.on('change', () => {
+        this.selectedStartDate = this.start.property('value')
+        this.reload()
+      })
+
+      this.end.on('change', () => {
+        this.selectedEndDate = this.end.property('value')
+        this.reload()
+      })
+
+      this.buttons.on('click', () => {
+        const activeButton = d3.select(d3.event.toElement)
+
+        this.buttons.classed('active', false)
+        activeButton.classed('active', true)
+
+        this.activeTicker = activeButton.text()
+        this.reload()
+      })
+    }
+
+    reload(callback) {
+      chart.load(
+        this.activeTicker,
+        this.selectedStartDate,
+        this.selectedEndDate,
+        callback
+      )
+    }
   }
 
-  buttons.on('click', () => {
-    buttons.classed('active', false)
-    d3.select(d3.event.toElement).classed('active', true)
-    load()
-  })
+  const main = d3.select('#main')
 
-  start.on('change', () => {
-    load()
-  })
+  const chart = new Chart(main)
+  const form = new Form(main)
 
-  end.on('change', () => {
-    load()
-  })
-
-  load(data => {
-    start.property('value', data[0]['Date'])
-    end.property('value', data[data.length - 1]['Date'])
-  })
+  form.init()
 }())
