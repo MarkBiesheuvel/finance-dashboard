@@ -33,15 +33,17 @@ class FinanceStack(core.Stack):
             point_in_time_recovery=True,
         )
 
+        index_name = 'Date-index'
         table.add_global_secondary_index(
-            index_name='DateTicker-index',
+            index_name=index_name,
             partition_key=date,
             sort_key=ticker,
-            projection_type=dynamodb.ProjectionType.KEYS_ONLY,
+            projection_type=dynamodb.ProjectionType.INCLUDE,
+            non_key_attributes=['Name']
         )
 
         Importer(self, 'Importer', table=table)
-        restapi = RestApi(self, 'Api', table=table)
+        restapi = RestApi(self, 'Api', table=table, index_name=index_name)
         Website(self, 'Website', api=restapi.api)
 
 

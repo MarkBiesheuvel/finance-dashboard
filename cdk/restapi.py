@@ -10,7 +10,7 @@ from aws_cdk import (
 
 class RestApi(core.Construct):
 
-    def __init__(self, scope: core.Construct, id: str, table: dynamodb.Table, **kwargs) -> None:
+    def __init__(self, scope: core.Construct, id: str, table: dynamodb.Table, index_name: str, **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
 
         role = iam.Role(
@@ -23,7 +23,19 @@ class RestApi(core.Construct):
 
         table.grant_read_data(role)
 
-        function = lambda_.Function(
+        list_function = lambda_.Function(
+            self, 'List',
+            runtime=lambda_.Runtime.PYTHON_3_7,  # Current version on my machines
+            code=lambda_.Code.from_asset('src/list'),
+            handler='list.handler',
+            role=role,
+            environment={
+                'TABLE_NAME': table.table_name,
+                'INDEX_NAME': index_name,
+            }
+        )
+
+        query_function = lambda_.Function(
             self, 'Query',
             runtime=lambda_.Runtime.PYTHON_3_7,  # Current version on my machines
             code=lambda_.Code.from_asset('src/query'),
@@ -46,16 +58,23 @@ class RestApi(core.Construct):
             ),
         )
 
-        resource = api.root.add_resource('stock').add_resource('{ticker}')
+        stock_root_resource = api.root.add_resource('stock')
+        stock_id_resource = stock_root_resource.add_resource('{ticker}')
 
-        integration = apigateway.LambdaIntegration(
-            function,
-            proxy=True,
+        stock_root_resource.add_method(
+            'GET',
+            integration=apigateway.LambdaIntegration(
+                list_function,
+                proxy=True,
+            ),
         )
 
-        resource.add_method(
+        stock_id_resource.add_method(
             'GET',
-            integration=integration,
+            integration=apigateway.LambdaIntegration(
+                query_function,
+                proxy=True,
+            ),
             request_parameters={
                 'method.request.querystring.start': False,
                 'method.request.querystring.end': False,

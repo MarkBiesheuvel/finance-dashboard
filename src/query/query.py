@@ -1,10 +1,10 @@
 from os import environ
-import boto3
+from boto3 import resource
 from boto3.dynamodb.conditions import Key
-import json
+from json import dumps as json_dump
 
 if 'TABLE_NAME' in environ:
-    dynamodb = boto3.resource('dynamodb')
+    dynamodb = resource('dynamodb')
     table = dynamodb.Table(environ['TABLE_NAME'])
 else:
     exit('Environment variable "TABLE_NAME" not set')
@@ -15,8 +15,17 @@ def handler(event, context):
     start = event.get('queryStringParameters', {}).get('start', '')
     end = event.get('queryStringParameters', {}).get('end', '')
 
+    projection_expression = '#d, #o, High, Low, #c'
+    expression_attributes = {
+        '#d': 'Date',
+        '#o': 'Open',
+        '#c': 'Close'
+    }
+
     if start and end:
         response = table.query(
+            ProjectionExpression=projection_expression,
+            ExpressionAttributeNames=expression_attributes,
             KeyConditionExpression=Key('Ticker').eq(ticker) & Key('Date').between(start, end),
         )
         items = response['Items']
@@ -24,6 +33,8 @@ def handler(event, context):
         response = table.query(
             Limit=60,
             ScanIndexForward=False,
+            ProjectionExpression=projection_expression,
+            ExpressionAttributeNames=expression_attributes,
             KeyConditionExpression=Key('Ticker').eq(ticker),
         )
         items = response['Items']
@@ -34,5 +45,5 @@ def handler(event, context):
         'headers': {
             'Access-Control-Allow-Origin': 'http://[::1]',
         },
-        'body': json.dumps(items, default=str)
+        'body': json_dump(items, default=str)
     }
