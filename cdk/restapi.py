@@ -49,6 +49,13 @@ class RestApi(core.Construct):
             }
         )
 
+        list_version = lambda_.Version(
+            self, 'ListVersion',
+            lambda_=list_function,
+            removal_policy=core.RemovalPolicy.DESTROY,
+            provisioned_concurrent_executions=1,  # Avoid cold starts
+        )
+
         query_function = lambda_.Function(
             self, 'Query',
             runtime=lambda_.Runtime.PYTHON_3_7,  # Current version on my machines
@@ -62,6 +69,13 @@ class RestApi(core.Construct):
             environment={
                 'TABLE_NAME': table.table_name
             }
+        )
+
+        query_version = lambda_.Version(
+            self, 'QueryVersion',
+            lambda_=query_function,
+            removal_policy=core.RemovalPolicy.DESTROY,
+            provisioned_concurrent_executions=1,  # Avoid cold starts
         )
 
         api = apigateway.RestApi(
@@ -81,17 +95,17 @@ class RestApi(core.Construct):
         stock_id_resource = stock_root_resource.add_resource('{ticker}')
 
         stock_root_resource.add_method(
-            'GET',
+            http_method='GET',
             integration=apigateway.LambdaIntegration(
-                list_function,
+                list_version,
                 proxy=True,
             ),
         )
 
         stock_id_resource.add_method(
-            'GET',
+            http_method='GET',
             integration=apigateway.LambdaIntegration(
-                query_function,
+                query_version,
                 proxy=True,
             ),
             request_parameters={
