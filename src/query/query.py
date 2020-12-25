@@ -2,6 +2,16 @@ from os import environ
 from boto3 import resource
 from boto3.dynamodb.conditions import Key
 from json import dumps as json_dump
+from aws_xray_sdk.core import patch_all, xray_recorder
+
+patch_all()
+
+projection_expression = '#d, #o, High, Low, #c'
+expression_attributes = {
+    '#d': 'Date',
+    '#o': 'Open',
+    '#c': 'Close'
+}
 
 if 'TABLE_NAME' in environ:
     dynamodb = resource('dynamodb')
@@ -10,35 +20,43 @@ else:
     exit('Environment variable "TABLE_NAME" not set')
 
 
+@xray_recorder.capture('get_lastest_records')
+def get_lastest_records(ticker, days):
+    response = table.query(
+        Limit=days,
+        ScanIndexForward=False,
+        ProjectionExpression=projection_expression,
+        ExpressionAttributeNames=expression_attributes,
+        KeyConditionExpression=Key('Ticker').eq(ticker),
+    )
+
+    items = response['Items']
+    items.reverse()
+
+    return items
+
+
+@xray_recorder.capture('get_records_by_daterange')
+def get_records_by_daterange(ticker, start, end):
+    response = table.query(
+        ProjectionExpression=projection_expression,
+        ExpressionAttributeNames=expression_attributes,
+        KeyConditionExpression=Key('Ticker').eq(ticker) & Key('Date').between(start, end),
+    )
+
+    return response['Items']
+
+
+@xray_recorder.capture('handler')
 def handler(event, context):
     ticker = event.get('pathParameters', {}).get('ticker', '')
     start = event.get('queryStringParameters', {}).get('start', '')
     end = event.get('queryStringParameters', {}).get('end', '')
 
-    projection_expression = '#d, #o, High, Low, #c'
-    expression_attributes = {
-        '#d': 'Date',
-        '#o': 'Open',
-        '#c': 'Close'
-    }
-
     if start and end:
-        response = table.query(
-            ProjectionExpression=projection_expression,
-            ExpressionAttributeNames=expression_attributes,
-            KeyConditionExpression=Key('Ticker').eq(ticker) & Key('Date').between(start, end),
-        )
-        items = response['Items']
+        items = get_records_by_daterange(ticker, start, end)
     else:
-        response = table.query(
-            Limit=60,
-            ScanIndexForward=False,
-            ProjectionExpression=projection_expression,
-            ExpressionAttributeNames=expression_attributes,
-            KeyConditionExpression=Key('Ticker').eq(ticker),
-        )
-        items = response['Items']
-        items.reverse()
+        items = get_lastest_records(ticker, 60)
 
     return {
         'statusCode': 200,

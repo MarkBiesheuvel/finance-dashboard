@@ -23,12 +23,26 @@ class RestApi(core.Construct):
 
         table.grant_read_data(role)
 
+        xray = lambda_.LayerVersion(
+            self, 'Xray',
+            compatible_runtimes=[
+                lambda_.Runtime.PYTHON_3_6,
+                lambda_.Runtime.PYTHON_3_7,
+                lambda_.Runtime.PYTHON_3_8,
+            ],
+            code=lambda_.Code.from_asset('src/xray'),
+        )
+
         list_function = lambda_.Function(
             self, 'List',
             runtime=lambda_.Runtime.PYTHON_3_7,  # Current version on my machines
             code=lambda_.Code.from_asset('src/list'),
             handler='list.handler',
             role=role,
+            tracing=lambda_.Tracing.ACTIVE,
+            layers=[
+                xray,
+            ],
             environment={
                 'TABLE_NAME': table.table_name,
                 'INDEX_NAME': index_name,
@@ -41,6 +55,10 @@ class RestApi(core.Construct):
             code=lambda_.Code.from_asset('src/query'),
             handler='query.handler',
             role=role,
+            tracing=lambda_.Tracing.ACTIVE,
+            layers=[
+                xray,
+            ],
             environment={
                 'TABLE_NAME': table.table_name
             }
@@ -55,6 +73,7 @@ class RestApi(core.Construct):
             deploy_options=apigateway.StageOptions(
                 logging_level=apigateway.MethodLoggingLevel.ERROR,
                 metrics_enabled=True,
+                tracing_enabled=True,
             ),
         )
 

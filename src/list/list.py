@@ -3,6 +3,9 @@ from boto3 import resource
 from boto3.dynamodb.conditions import Key
 from datetime import timedelta, datetime
 from json import dumps as json_dump
+from aws_xray_sdk.core import patch_all, xray_recorder
+
+patch_all()
 
 if 'INDEX_NAME' in environ:
     index_name = environ['INDEX_NAME']
@@ -16,6 +19,7 @@ else:
     exit('Environment variable "TABLE_NAME" not set')
 
 
+@xray_recorder.capture('query')
 def query(date: datetime):
     response = table.query(
         IndexName=index_name,
@@ -29,6 +33,7 @@ def query(date: datetime):
     return response['Items']
 
 
+@xray_recorder.capture('list_tickers')
 def list_tickers():
     one_day = timedelta(days=1)
 
@@ -45,6 +50,7 @@ def list_tickers():
     return items
 
 
+@xray_recorder.capture('handler')
 def handler(event, context):
     items = list_tickers()
 
