@@ -45,7 +45,7 @@ def list_tickers():
     # Retry until a valid date is found, e.g. markets were not closed
     while len(items) == 0:
         date = date - one_day
-        items = list_tickers(date)
+        items = query(date)
 
     return items
 
