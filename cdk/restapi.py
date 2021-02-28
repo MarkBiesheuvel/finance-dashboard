@@ -33,13 +33,19 @@ class RestApi(core.Construct):
             code=lambda_.Code.from_asset('src/xray'),
         )
 
+        version_options = lambda_.VersionOptions(
+            retry_attempts=0, # No retries
+            provisioned_concurrent_executions=1,  # Avoid cold starts
+        )
+
         list_function = lambda_.Function(
             self, 'List',
-            runtime=lambda_.Runtime.PYTHON_3_7,  # Current version on my machines
+            runtime=lambda_.Runtime.PYTHON_3_7,
             code=lambda_.Code.from_asset('src/list'),
             handler='list.handler',
             role=role,
             tracing=lambda_.Tracing.ACTIVE,
+            current_version_options=version_options,
             layers=[
                 xray,
             ],
@@ -49,33 +55,20 @@ class RestApi(core.Construct):
             }
         )
 
-        list_version = lambda_.Version(
-            self, 'ListVersion',
-            lambda_=list_function,
-            removal_policy=core.RemovalPolicy.DESTROY,
-            provisioned_concurrent_executions=1,  # Avoid cold starts
-        )
-
         query_function = lambda_.Function(
             self, 'Query',
-            runtime=lambda_.Runtime.PYTHON_3_7,  # Current version on my machines
+            runtime=lambda_.Runtime.PYTHON_3_7,
             code=lambda_.Code.from_asset('src/query'),
             handler='query.handler',
             role=role,
             tracing=lambda_.Tracing.ACTIVE,
+            current_version_options=version_options,
             layers=[
                 xray,
             ],
             environment={
                 'TABLE_NAME': table.table_name
             }
-        )
-
-        query_version = lambda_.Version(
-            self, 'QueryVersion',
-            lambda_=query_function,
-            removal_policy=core.RemovalPolicy.DESTROY,
-            provisioned_concurrent_executions=1,  # Avoid cold starts
         )
 
         api = apigateway.RestApi(
@@ -97,7 +90,7 @@ class RestApi(core.Construct):
         stock_root_resource.add_method(
             http_method='GET',
             integration=apigateway.LambdaIntegration(
-                list_version,
+                list_function.current_version,
                 proxy=True,
             ),
         )
@@ -105,7 +98,7 @@ class RestApi(core.Construct):
         stock_id_resource.add_method(
             http_method='GET',
             integration=apigateway.LambdaIntegration(
-                query_version,
+                query_function.current_version,
                 proxy=True,
             ),
             request_parameters={
