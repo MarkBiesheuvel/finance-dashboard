@@ -50,7 +50,7 @@ class Importer(core.Construct):
 
         function = lambda_.Function(
             self, 'Download',
-            runtime=lambda_.Runtime.PYTHON_3_6,  # Current version on my machines
+            runtime=lambda_.Runtime.PYTHON_3_8,
             code=lambda_.Code.from_asset('src/download'),
             handler='download.handler',
             timeout=core.Duration.minutes(1),

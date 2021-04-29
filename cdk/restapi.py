@@ -40,7 +40,7 @@ class RestApi(core.Construct):
 
         list_function = lambda_.Function(
             self, 'List',
-            runtime=lambda_.Runtime.PYTHON_3_7,
+            runtime=lambda_.Runtime.PYTHON_3_8,
             code=lambda_.Code.from_asset('src/list'),
             handler='list.handler',
             role=role,
@@ -57,7 +57,7 @@ class RestApi(core.Construct):
 
         query_function = lambda_.Function(
             self, 'Query',
-            runtime=lambda_.Runtime.PYTHON_3_7,
+            runtime=lambda_.Runtime.PYTHON_3_8,
             code=lambda_.Code.from_asset('src/query'),
             handler='query.handler',
             role=role,
