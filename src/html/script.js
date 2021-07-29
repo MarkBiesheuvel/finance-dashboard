@@ -195,7 +195,7 @@
       })
 
       this.buttons.on('click', () => {
-        const activeButton = d3.select(d3.event.toElement)
+        const activeButton = d3.select(d3.event.target)
 
         this.buttons.classed('active', false)
         activeButton.classed('active', true)
