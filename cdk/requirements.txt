@@ -1,13 +1,2 @@
-aws-cdk.aws-certificatemanager==1.116.0
-aws-cdk.aws-apigateway==1.116.0
-aws-cdk.aws-dynamodb==1.116.0
-aws-cdk.aws-cloudfront==1.116.0
-aws-cdk.aws-events==1.116.0
-aws-cdk.aws-events-targets==1.116.0
-aws-cdk.aws-iam==1.116.0
-aws-cdk.aws-lambda==1.116.0
-aws-cdk.aws-route53==1.116.0
-aws-cdk.aws-route53-targets==1.116.0
-aws-cdk.aws-s3==1.116.0
-aws-cdk.aws-s3-deployment==1.116.0
-aws-cdk.core==1.116.0
+aws-cdk-lib==2.31.1
+constructs>=10.0.0,<11.0.0

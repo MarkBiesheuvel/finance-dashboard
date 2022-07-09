@@ -30,8 +30,6 @@ The total price of storage in S3 and DynamoDB is approximately **$0.0008 per mon
 
 \* All prices are based on `eu-central-1` and do not include the [AWS Free Tier](https://aws.amazon.com/free/)
 
-\*\* Note: the demo uses provisioned concurrency, but this hasn't been included in the price calculation (yet).
-
 ## Live environment
 
 A live environment can be found at [finance.demo.training](https://finance.demo.training).

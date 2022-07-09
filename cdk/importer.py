@@ -1,7 +1,8 @@
-#!/user/bin/env python3
+#!/usr/bin/env python3
 from typing import List
+from constructs import Construct
 from aws_cdk import (
-    core,
+    Duration,
     aws_dynamodb as dynamodb,
     aws_events as events,
     aws_events_targets as events_targets,
@@ -23,9 +24,9 @@ IMPORT_JOBS = [
 ]
 
 
-class Importer(core.Construct):
+class Importer(Construct):
 
-    def __init__(self, scope: core.Construct, id: str, table: dynamodb.Table, **kwargs) -> None:
+    def __init__(self, scope: Construct, id: str, table: dynamodb.Table, **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
 
         role = iam.Role(
@@ -53,7 +54,7 @@ class Importer(core.Construct):
             runtime=lambda_.Runtime.PYTHON_3_8,
             code=lambda_.Code.from_asset('src/download'),
             handler='download.handler',
-            timeout=core.Duration.minutes(1),
+            timeout=Duration.minutes(1),
             memory_size=1024,
             role=role,
             layers=[yfinance_layer],

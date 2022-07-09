@@ -1,6 +1,8 @@
-#!/user/bin/env python3
+#!/usr/bin/env python3
+from constructs import Construct
 from aws_cdk import (
-    core,
+    Stack,
+    Duration,
     aws_certificatemanager as acm,
     aws_apigateway as apigateway,
     aws_cloudfront as cloudfront,
@@ -11,11 +13,11 @@ from aws_cdk import (
 )
 
 
-class Website(core.Construct):
+class Website(Construct):
 
-    def __init__(self, scope: core.Construct, id: str, api: apigateway.RestApi, **kwargs) -> None:
+    def __init__(self, scope: Construct, id: str, api: apigateway.RestApi, **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
-        stack = core.Stack.of(self)
+        stack = Stack.of(self)
 
         bucket = s3.Bucket(self, 'Storage')
 
@@ -38,17 +40,17 @@ class Website(core.Construct):
             ),
             behaviors=[
                 cloudfront.Behavior(
-                    default_ttl=core.Duration.days(1),
-                    min_ttl=core.Duration.days(1),
-                    max_ttl=core.Duration.days(31),
+                    default_ttl=Duration.days(1),
+                    min_ttl=Duration.days(1),
+                    max_ttl=Duration.days(31),
                     is_default_behavior=True,
                 )
             ]
         )
 
         api_origin = cloudfront.SourceConfiguration(
-            origin_path='/{}'.format(api.deployment_stage.stage_name),
             custom_origin_source=cloudfront.CustomOriginConfig(
+                origin_path='/{}'.format(api.deployment_stage.stage_name),
                 domain_name='{}.execute-api.{}.{}'.format(
                     api.rest_api_id,
                     stack.region,
@@ -57,9 +59,9 @@ class Website(core.Construct):
             ),
             behaviors=[
                 cloudfront.Behavior(
-                    default_ttl=core.Duration.seconds(0),
-                    min_ttl=core.Duration.seconds(0),
-                    max_ttl=core.Duration.seconds(0),
+                    default_ttl=Duration.seconds(0),
+                    min_ttl=Duration.seconds(0),
+                    max_ttl=Duration.seconds(0),
                     path_pattern='/stock/*',
                     forwarded_values={
                         'query_string': True,
@@ -91,17 +93,24 @@ class Website(core.Construct):
                 s3_origin,
                 api_origin,
             ],
-            alias_configuration=cloudfront.AliasConfiguration(
-                acm_cert_ref=certificate.certificate_arn,
-                names=[subdomain],
-            )
+            viewer_certificate=cloudfront.ViewerCertificate.from_acm_certificate(
+                certificate=certificate,
+                aliases=[subdomain],
+            ),
         )
 
-        route53.ARecord(
-            self, 'DnsRecord',
+        target = route53.RecordTarget.from_alias(
+            alias_target=route53_targets.CloudFrontTarget(distribution)
+        )
+        route53.AaaaRecord(
+            self, 'DnsRecordIpv6',
             record_name=subdomain,
-            target=route53.AddressRecordTarget.from_alias(
-                alias_target=route53_targets.CloudFrontTarget(distribution)
-            ),
+            target=target,
+            zone=zone,
+        )
+        route53.ARecord(
+            self, 'DnsRecordIpv4',
+            record_name=subdomain,
+            target=target,
             zone=zone,
         )

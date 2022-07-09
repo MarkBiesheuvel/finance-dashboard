@@ -1,17 +1,21 @@
-#!/user/bin/env python3
+#!/usr/bin/env python3
 from os import environ
 from importer import Importer
 from restapi import RestApi
 from website import Website
+from constructs import Construct
 from aws_cdk import (
-    core,
+    App,
+    Environment,
+    Stack,
+    RemovalPolicy,
     aws_dynamodb as dynamodb,
 )
 
 
-class FinanceStack(core.Stack):
+class FinanceStack(Stack):
 
-    def __init__(self, scope: core.Construct, id: str, **kwargs) -> None:
+    def __init__(self, scope: Construct, id: str, **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
 
         ticker = dynamodb.Attribute(
@@ -29,7 +33,7 @@ class FinanceStack(core.Stack):
             partition_key=ticker,
             sort_key=date,
             billing_mode=dynamodb.BillingMode.PAY_PER_REQUEST,
-            removal_policy=core.RemovalPolicy.DESTROY,
+            removal_policy=RemovalPolicy.DESTROY,
             point_in_time_recovery=True,
         )
 
@@ -47,10 +51,10 @@ class FinanceStack(core.Stack):
         Website(self, 'Website', api=restapi.api)
 
 
-app = core.App()
+app = App()
 stack = FinanceStack(
     app, 'FinanceDashboard',
-    env=core.Environment(
+    env=Environment(
         account=environ['CDK_DEFAULT_ACCOUNT'],
         region=environ['CDK_DEFAULT_REGION'],
     )

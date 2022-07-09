@@ -1,6 +1,6 @@
-#!/user/bin/env python3
+#!/usr/bin/env python3
+from constructs import Construct
 from aws_cdk import (
-    core,
     aws_apigateway as apigateway,
     aws_dynamodb as dynamodb,
     aws_iam as iam,
@@ -8,9 +8,9 @@ from aws_cdk import (
 )
 
 
-class RestApi(core.Construct):
+class RestApi(Construct):
 
-    def __init__(self, scope: core.Construct, id: str, table: dynamodb.Table, index_name: str, **kwargs) -> None:
+    def __init__(self, scope: Construct, id: str, table: dynamodb.Table, index_name: str, **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
 
         role = iam.Role(
@@ -33,11 +33,6 @@ class RestApi(core.Construct):
             code=lambda_.Code.from_asset('src/xray'),
         )
 
-        version_options = lambda_.VersionOptions(
-            retry_attempts=0, # No retries
-            provisioned_concurrent_executions=1,  # Avoid cold starts
-        )
-
         list_function = lambda_.Function(
             self, 'List',
             runtime=lambda_.Runtime.PYTHON_3_8,
@@ -45,7 +40,6 @@ class RestApi(core.Construct):
             handler='list.handler',
             role=role,
             tracing=lambda_.Tracing.ACTIVE,
-            current_version_options=version_options,
             layers=[
                 xray,
             ],
@@ -62,7 +56,6 @@ class RestApi(core.Construct):
             handler='query.handler',
             role=role,
             tracing=lambda_.Tracing.ACTIVE,
-            current_version_options=version_options,
             layers=[
                 xray,
             ],
@@ -90,7 +83,7 @@ class RestApi(core.Construct):
         stock_root_resource.add_method(
             http_method='GET',
             integration=apigateway.LambdaIntegration(
-                list_function.current_version,
+                list_function,
                 proxy=True,
             ),
         )
@@ -98,7 +91,7 @@ class RestApi(core.Construct):
         stock_id_resource.add_method(
             http_method='GET',
             integration=apigateway.LambdaIntegration(
-                query_function.current_version,
+                query_function,
                 proxy=True,
             ),
             request_parameters={
