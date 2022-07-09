@@ -1,5 +1,5 @@
 /* global d3 */
-(function () {
+(() => {
   const protocol = 'https'
   const domain = 'finance.demo.training'
 
@@ -37,6 +37,12 @@
     load (ticker, start, end, callback) {
       d3.json(`${protocol}://${domain}/stock/${ticker}?start=${start}&end=${end}`)
         .then(data => {
+          data.forEach((row) => {
+            row.Low = parseFloat(row.Low)
+            row.Open = parseFloat(row.Open)
+            row.Close = parseFloat(row.Close)
+            row.High = parseFloat(row.High)
+          })
           if (callback) {
             callback(data)
           }
@@ -194,8 +200,8 @@
         this.reload()
       })
 
-      this.buttons.on('click', () => {
-        const activeButton = d3.select(d3.event.target)
+      this.buttons.on('click', (event) => {
+        const activeButton = d3.select(event.target)
 
         this.buttons.classed('active', false)
         activeButton.classed('active', true)
@@ -221,4 +227,4 @@
   const form = new Form(main)
 
   form.init()
-}())
+})()
