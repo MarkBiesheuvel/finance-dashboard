@@ -55,6 +55,17 @@ To install CDK libraries:
 pip install -r cdk/requirements.txt
 ```
 
+To download the dependencies for the Lambda Layers:
+```sh
+cd src/yfinance/python/
+pip install -r requirements.txt -t .
+```
+
+```sh
+cd src/xray/python
+pip install -r requirements.txt -t .
+```
+
 To deploy the CDK template:
 
 ```sh
